@@ -38,6 +38,10 @@ jobs:
           allure generate allure-results -o allure-report --clean
         continue-on-error: true  # Ensures the report is generated even if tests fail
 
+      - name: Debug - List Allure Report Files
+        run: dir allure-report
+
+
       - name: Upload Allure Report as Artifact
         uses: actions/upload-artifact@v4
         with:
