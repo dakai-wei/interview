@@ -41,9 +41,10 @@ jobs:
         
       - name: Generate Allure Report
         run: |
-          mkdir -p allure-report
-          $(npm root -g)/allure-commandline/bin/allure generate allure-results -o allure-report --clean
-        continue-on-error: true  
+          mkdir allure-report
+          npx allure-commandline generate allure-results -o allure-report --clean
+        continue-on-error: true
+
 
       - name: Upload Allure Report as Artifact
         uses: actions/upload-artifact@v4
