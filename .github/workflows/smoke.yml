@@ -70,6 +70,13 @@ jobs:
 
           # Save summary to a file
           $summary_text | Out-File -Encoding utf8 allure_summary.txt
+      
+      - name: Read Allure Report Summary
+        shell: pwsh
+        run: |
+          $summary_text = Get-Content allure_summary.txt -Raw
+          $summary_text = $summary_text -replace "`r`n", "\n"  # Ensure proper line endings
+          echo "ALLURE_SUMMARY=$summary_text" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
 
       - name: Send Email Notification
@@ -80,7 +87,7 @@ jobs:
           username: ${{ secrets.EMAIL_USER }}
           password: ${{ secrets.EMAIL_PASS }}
           subject: "Smoke Tests Report"
-          body_file: allure_summary.txt  # Uses the generated summary as email body
+          body: ${{ env.ALLURE_SUMMARY }}  # Use the environment variable
           to: "wei.dakai@hotmail.com"
           from: "GitHub Actions"
           attachments: allure-report/index.html
