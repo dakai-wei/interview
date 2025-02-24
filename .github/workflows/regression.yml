@@ -1,6 +1,6 @@
 name: REGRESSION testsuits
 on:
-  shcedule:
+  schedule:
     - cron: '50 23 * * *'  # Run daily at midnight
 
 jobs:
