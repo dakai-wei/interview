@@ -52,29 +52,31 @@ jobs:
           name: allure-report
           path: allure-report
 
-      - name: Extract Allure Report Summary
+      - name: Upload Allure Report as Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-report
+          path: allure-report
+
+      - name: Generate Allure Report Summary
+        shell: pwsh
         run: |
-          python - <<EOF
-          import json
-          import os
+          $summary_file = "allure-results/summary.json"
+          $summary_text = "Allure Report Summary:`nFull report is here: https://dakai-wei.github.io/interview/index.html`n"
 
-          summary_file = "allure-results/summary.json"
-          summary_text = "Allure Report Summary:\n full report is here: https://dakai-wei.github.io/interview/index.html\n"
-
-          if os.path.exists(summary_file):
-              with open(summary_file, "r") as file:
-                  summary = json.load(file)
-                  summary_text += f"✔️ Passed: {summary['statistic']['passed']}\n"
-                  summary_text += f❌ "Failed: {summary['statistic']['failed']}\n"
-                  summary_text += f"⚠️ Skipped: {summary['statistic']['skipped']}\n"
-                  summary_text += f"⏱️ Execution Time: {summary['time']['duration']/1000:.2f} seconds\n"
-          else:
-              summary_text += "⚠️ Summary file not found!"
+          if (Test-Path $summary_file) {
+              $summary = Get-Content $summary_file | ConvertFrom-Json
+              $summary_text += "✔️ Passed: $($summary.statistic.passed)`n"
+              $summary_text += "❌ Failed: $($summary.statistic.failed)`n"
+              $summary_text += "⚠️ Skipped: $($summary.statistic.skipped)`n"
+              $summary_text += "⏱️ Execution Time: $([math]::Round($summary.time.duration / 1000, 2)) seconds`n"
+          } else {
+              $summary_text += "⚠️ Summary file not found!"
+          }
 
           # Save summary to a file
-          with open("allure_summary.txt", "w") as file:
-              file.write(summary_text)
-          EOF
+          $summary_text | Out-File -Encoding utf8 allure_summary.txt
+
 
       - name: Send Email Notification
         uses: dawidd6/action-send-mail@v3
