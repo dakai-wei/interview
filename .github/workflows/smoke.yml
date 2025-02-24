@@ -33,8 +33,8 @@ jobs:
       - name: Install Allure CLI
         run: |
           npm install -g allure-commandline
-          echo "ALLURE_PATH=$(npm root -g)/allure-commandline/bin" >> $GITHUB_ENV
-          echo "PATH=$PATH:$(npm root -g)/allure-commandline/bin" >> $GITHUB_ENV
+          echo "ALLURE_PATH=$(npm root -g)/allure-commandline/bin" | Out-File -FilePath $env:GITHUB_ENV -Append
+          echo "PATH=$env:PATH;$(npm root -g)/allure-commandline/bin" | Out-File -FilePath $env:GITHUB_ENV -Append
 
       - name: Run Smoke Test Suits
         run: pytest -m smoke --alluredir=allure-results
