@@ -1,7 +1,7 @@
 name: REGRESSION testsuits
 on:
   schedule:
-    - cron: '50 23 * * *'  # Run daily at midnight
+    - cron: '0 8 * * 0-6'  # Run daily at midnight
 
 jobs:
   test:
@@ -27,19 +27,22 @@ jobs:
         uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
-          java-version: '21'  # Fixed Java version
+          java-version: '23'
 
-      - name: Run Regression Test Suits
-        run: pytest -m regression --alluredir=allure-results
+      - name: Install Allure CLI
+        run: |
+          npm install -g allure-commandline
+          echo "ALLURE_PATH=$(npm root -g)/allure-commandline/bin" | Out-File -FilePath $env:GITHUB_ENV -Append
+          echo "PATH=$env:PATH;$(npm root -g)/allure-commandline/bin" | Out-File -FilePath $env:GITHUB_ENV -Append
 
+      - name: Run Smoke Test Suits
+        run: pytest -m smoke --alluredir=allure-results
+        
       - name: Generate Allure Report
         run: |
-          mkdir -p allure-report
-          allure generate allure-results -o allure-report --clean
-        continue-on-error: true  # Ensures the report is generated even if tests fail
-
-      - name: Debug - List Allure Report Files
-        run: dir allure-report
+          mkdir allure-report
+          npx allure-commandline generate allure-results -o allure-report --clean
+        continue-on-error: true
 
 
       - name: Upload Allure Report as Artifact
@@ -60,3 +63,11 @@ jobs:
           to: "wei.dakai@hotmail.com"
           from: "GitHub Actions"
           attachments: allure-report/index.html
+          
+      - name: Deploy Allure Report to GitHub Pages
+        if: success()
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: ./allure-report
