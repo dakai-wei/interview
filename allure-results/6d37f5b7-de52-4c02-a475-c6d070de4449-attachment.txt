@@ -1,0 +1,8 @@
+Locator expected to have text 'You clicked an alert'
+Actual value: You successfully clicked an alert 
+Call log:
+  - LocatorAssertions.to_have_text with timeout 5000ms
+  -   - waiting for locator("#result")
+  -     9 × locator resolved to <p id="result">You successfully clicked an alert</p>
+  -       - unexpected value "You successfully clicked an alert"
+
