@@ -51,6 +51,30 @@ jobs:
           name: allure-report
           path: allure-report
 
+      - name: Extract Allure Report Summary
+        run: |
+          python - <<EOF
+          import json
+          import os
+
+          summary_file = "allure-results/summary.json"
+          summary_text = "Allure Report Summary:\n full report is here: https://dakai-wei.github.io/interview/index.html\n"
+
+          if os.path.exists(summary_file):
+              with open(summary_file, "r") as file:
+                  summary = json.load(file)
+                  summary_text += f"✔️ Passed: {summary['statistic']['passed']}\n"
+                  summary_text += f❌ "Failed: {summary['statistic']['failed']}\n"
+                  summary_text += f"⚠️ Skipped: {summary['statistic']['skipped']}\n"
+                  summary_text += f"⏱️ Execution Time: {summary['time']['duration']/1000:.2f} seconds\n"
+          else:
+              summary_text += "⚠️ Summary file not found!"
+
+          # Save summary to a file
+          with open("allure_summary.txt", "w") as file:
+              file.write(summary_text)
+          EOF
+
       - name: Send Email Notification
         uses: dawidd6/action-send-mail@v3
         with:
@@ -59,10 +83,11 @@ jobs:
           username: ${{ secrets.EMAIL_USER }}
           password: ${{ secrets.EMAIL_PASS }}
           subject: "Smoke Tests Report"
-          body: "Smoke tests completed. Download the Allure report."
+          body_file: allure_summary.txt  # Uses the generated summary as email body
           to: "wei.dakai@hotmail.com"
           from: "GitHub Actions"
           attachments: allure-report/index.html
+
           
       - name: Deploy Allure Report to GitHub Pages
         if: success()
