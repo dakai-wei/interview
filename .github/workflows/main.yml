@@ -1,0 +1,57 @@
+name: SMOKE testsuits
+on:
+  push:
+    branches:
+      - main
+jobs:
+  test:
+    runs-on windows-latest
+
+    steps:
+      - name: Check Repo
+        uses: action/checkout@4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+
+      - name: Install Dependencies
+        run:
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          playwright install
+          pip install allure-pytest
+          
+      - name: Install Java&Allure-CLI
+        uses: actions/setup-java@v3
+          with:
+            distribution: 'temurin'
+            java-version: '23'
+
+      - name: Run Smoke Test Suits
+        run: pytest -m smoke --alluredir=allure-results
+        
+      - name: Generate Allure Report
+        run: | #Using | makes the script more readable and avoids complex chaining with && or ;
+          mkdir -p allure-report
+          allure generate allure-results -o allure-report --clean
+        continue-on-error: true  # If tests fail, the report still gets generated
+
+      - name: Upload Allure Report as Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-report
+          path: allure-report
+
+       - name: Send Email Notification
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          username: ${{ secrets.EMAIL_USER }}
+          password: ${{ secrets.EMAIL_PASS }}
+          subject: "Smoke Tests Report"
+          body: "Smoke tests completed. Download the Allure report."
+          to: "wei.dakai@hotmail.com"
+          from: "GitHub Actions"
+          attachments: allure-report/index.html
+      
