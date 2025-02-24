@@ -64,3 +64,12 @@ jobs:
           to: "wei.dakai@hotmail.com"
           from: "GitHub Actions"
           attachments: allure-report/index.html
+          
+      - name: Deploy Allure Report to GitHub Pages
+        if: success()
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: ./allure-report
+
